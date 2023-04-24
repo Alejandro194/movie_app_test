@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   get: ^4.6.5
   http: ^0.13.5
+  cached_network_image: ^3.2.3
 
 dev_dependencies:
   flutter_test:
@@ -90,3 +91,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+  assets:
+    - assets/images/
