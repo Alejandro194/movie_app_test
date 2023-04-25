@@ -19,10 +19,13 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: sectionHeading()),
             SizedBox(
               height: getPercentageOfScreenHeigth(90),
               child: Padding(
-                  padding: const EdgeInsets.all(8.0), child: gridViewMovies(1)),
+                  padding: const EdgeInsets.all(8.0), child: gridViewMovies(2)),
             )
           ],
         ),
@@ -30,35 +33,55 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     );
   }
 
-  AppBar appBar(){
+  AppBar appBar() {
     return AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 50,
-              height: 50,
-              child: Image.asset(
-                "assets/images/moviePlaceholderImage2.jpg",
-                fit: BoxFit.fill,
-              ),
+      backgroundColor: Colors.white,
+      elevation: 0,
+      centerTitle: true,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 50,
+            height: 50,
+            child: Image.asset(
+              "assets/images/moviePlaceholderImage2.jpg",
+              fit: BoxFit.fill,
             ),
-            Text(
-              "CinemaSerch",
-              style: TextStyle(color: Colors.black),
-            ),
-          ],
+          ),
+          Text(
+            "CinemaSerch",
+            style: TextStyle(color: Colors.black),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget sectionHeading() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          "Most popular movies",
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-      );
+        TextButton(onPressed: () {
+          Get.defaultDialog(
+            title: "Filter List",
+            content: Column(children: [
+              TextFormField(cursorColor: Colors.black,)
+            ],)
+          );
+        }, child: Icon(Icons.filter_alt_sharp, color: Colors.black,))
+      ],
+    );
   }
 
   Widget gridViewMovies(int crossAxisCount) {
     return GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount, childAspectRatio: 1.05),
+            crossAxisCount: crossAxisCount, childAspectRatio: 1.0),
         itemBuilder: (context, index) {
           return movieStack(index);
         });
@@ -78,36 +101,33 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
 
   Widget moviePopularityRankingIndex(int index) {
     return Container(
-      width: getPercentageOfScreenHeigth(10),
-      height: getPercentageOfScreenHeigth(10),
+      width: getPercentageOfScreenHeigth(3),
+      height: getPercentageOfScreenHeigth(3),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(50), color: Colors.amber),
       child: Center(
           child: Text(
         (index + 1).toString(),
-        style: TextStyle(fontSize: 40),
+        style: TextStyle(fontSize: 12),
       )),
     );
   }
 
   Widget movieCard(int index) {
     return Card(
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              children: [
-                movieImageRenderer(index),
-                movieCardTitleRow(index),
-              ],
-            ),
-            Column(
-              children: [
-                TextButton(onPressed: () {}, child: Text("View details")),
-              ],
-            )
+            movieImageRenderer(index),
+            movieCardTitleRow(index),
+            // Column(
+            //   children: [
+            //     TextButton(onPressed: () {}, child: Text("View details")),
+            //   ],
+            // )
           ],
         ),
       ),
@@ -121,7 +141,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
           child: SizedBox(
             child: Image.asset(
               "assets/images/moviePlaceholderImage.jpg",
-              fit: BoxFit.fill,
+              fit: BoxFit.scaleDown,
             ),
           ),
         )
@@ -131,13 +151,13 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
 
   Widget movieCardTitleRow(int index) {
     return Row(
-      children: [
+      children: const [
         Flexible(
           child: Text(
             "De Piraten van Hiernaast II: De Ninja's van de Overkant",
             overflow: TextOverflow.fade,
             textAlign: TextAlign.justify,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 12),
           ),
         ),
       ],
