@@ -57,24 +57,28 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
   AppBar appBar() {
     return AppBar(
       backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
       elevation: 0,
       centerTitle: true,
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 50,
-            height: 50,
-            child: Image.asset(
-              "assets/images/moviePlaceholderImage2.jpg",
-              fit: BoxFit.fill,
+      title: SizedBox(
+        width: 185,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 50,
+              height: 50,
+              child: Image.asset(
+                "assets/images/moviePlaceholderImage2.jpg",
+                fit: BoxFit.fill,
+              ),
             ),
-          ),
-          const Text(
-            "CinemaSerch",
-            style: TextStyle(color: Colors.black),
-          ),
-        ],
+            const Text(
+              "CinemaSerch",
+              style: TextStyle(color: Colors.black),
+            ),
+          ],
+        ),
       ),
     );
   }

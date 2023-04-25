@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:get/get.dart';
+import 'package:movie_app_test/screens/movie_details/movie_details_screen.dart';
 
 class PopularMoviesScreen extends StatefulWidget {
   const PopularMoviesScreen({super.key});
@@ -49,7 +50,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
               fit: BoxFit.fill,
             ),
           ),
-          Text(
+          const Text(
             "CinemaSerch",
             style: TextStyle(color: Colors.black),
           ),
@@ -62,18 +63,26 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
+        const Text(
           "Most popular movies",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        TextButton(onPressed: () {
-          Get.defaultDialog(
-            title: "Filter List",
-            content: Column(children: [
-              TextFormField(cursorColor: Colors.black,)
-            ],)
-          );
-        }, child: Icon(Icons.filter_alt_sharp, color: Colors.black,))
+        TextButton(
+            onPressed: () {
+              Get.defaultDialog(
+                  title: "Filter List",
+                  content: Column(
+                    children: [
+                      TextFormField(
+                        cursorColor: Colors.black,
+                      )
+                    ],
+                  ));
+            },
+            child: const Icon(
+              Icons.filter_alt_sharp,
+              color: Colors.black,
+            ))
       ],
     );
   }
@@ -88,14 +97,19 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   }
 
   Widget movieStack(int index) {
-    return Stack(
-      children: [
-        movieCard(index),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: moviePopularityRankingIndex(index),
-        )
-      ],
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => const MovieDetailsScreen());
+      },
+      child: Stack(
+        children: [
+          movieCard(index),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: moviePopularityRankingIndex(index),
+          )
+        ],
+      ),
     );
   }
 
@@ -108,7 +122,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
       child: Center(
           child: Text(
         (index + 1).toString(),
-        style: TextStyle(fontSize: 12),
+        style: const TextStyle(fontSize: 12),
       )),
     );
   }
