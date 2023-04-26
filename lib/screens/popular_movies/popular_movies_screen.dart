@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:get/get.dart';
+import 'package:movie_app_test/controllers/error_controller.dart';
+import 'package:movie_app_test/controllers/movie_controller.dart';
+import 'package:movie_app_test/models/movie.dart';
 import 'package:movie_app_test/screens/movie_details/movie_details_screen.dart';
+import 'package:movie_app_test/services/tmbd_connection_sevice.dart';
 
 class PopularMoviesScreen extends StatefulWidget {
   const PopularMoviesScreen({super.key});
@@ -13,24 +17,94 @@ class PopularMoviesScreen extends StatefulWidget {
 }
 
 class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
+  late Future<List<Movie>> futureMovies;
+  List<Movie> popularMovies = [];
+
+  bool errorFetching = false;
+  int crossAxisCount = 1;
+  double popularityIndexSize = 3;
+  int popularityIndexFontSize = 12;
+  UniqueKey movieImageKey = UniqueKey();
+  int page = 2;
+  ScrollController gridViewScrollControlller = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    futureMovies = TMBDConnectionService.getMoviesPopularMovies(1);
+    gridViewScrollControlller.addListener(() {
+      if (gridViewScrollControlller.position.maxScrollExtent ==
+          gridViewScrollControlller.offset) {
+        addMoreMoviesToList();
+      }
+    });
+  }
+
+  void addMoreMoviesToList() async {
+    futureMovies = TMBDConnectionService.getMoviesPopularMovies(page);
+    setState(() {
+      page++;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: appBar(),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: sectionHeading()),
-            SizedBox(
-              height: getPercentageOfScreenHeigth(90),
-              child: Padding(
-                  padding: const EdgeInsets.all(8.0), child: gridViewMovies(2)),
-            )
-          ],
-        ),
-      ),
+      body: SingleChildScrollView(child: GetBuilder<ErrorController>(
+        builder: (_) {
+          if (_.errorOcurredWhileFetchingData) {
+            return errorFetchingMovies();
+          } else {
+            return FutureBuilder<List<Movie>>(
+              future: futureMovies,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  for (var i = 0; i < snapshot.data!.length; i++) {
+                    if (popularMovies.contains(snapshot.data![i]) == false) {
+                      popularMovies.add(snapshot.data![i]);
+                    }
+                  }
+                  
+
+                  return Column(
+                    children: [
+                      Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: sectionHeading()),
+                      SizedBox(
+                          height: 730,
+                          child: OrientationBuilder(
+                              builder: (context, orientation) {
+                            if (orientation == Orientation.landscape) {
+                              crossAxisCount = 4;
+                              popularityIndexSize = 8;
+                              popularityIndexFontSize = 20;
+                            }
+                            if (orientation == Orientation.portrait) {
+                              crossAxisCount = 2;
+                              popularityIndexSize = 3;
+                              popularityIndexFontSize = 12;
+                            }
+                            return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: RefreshIndicator(
+                                  color: Colors.black,
+                                  onRefresh: refresh,
+                                  child: gridViewMovies(
+                                      crossAxisCount, popularMovies),
+                                ));
+                          }))
+                    ],
+                  );
+                } else {
+                  return progressIndicator(40);
+                }
+              },
+            );
+          }
+        },
+      )),
     );
   }
 
@@ -62,61 +136,57 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   Widget sectionHeading() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          "Most popular movies",
-          style: TextStyle(fontWeight: FontWeight.bold),
+      children: const [
+        Padding(
+          padding: EdgeInsets.all(4.0),
+          child: Text(
+            "Top popular movies",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
         ),
-        TextButton(
-            onPressed: () {
-              Get.defaultDialog(
-                  title: "Filter List",
-                  content: Column(
-                    children: [
-                      TextFormField(
-                        cursorColor: Colors.black,
-                      )
-                    ],
-                  ));
-            },
-            child: const Icon(
-              Icons.filter_alt_sharp,
-              color: Colors.black,
-            ))
+        Icon(
+          Icons.filter_alt_sharp,
+          color: Colors.black,
+        )
       ],
     );
   }
 
-  Widget gridViewMovies(int crossAxisCount) {
+  Future refresh() async {
+    List<Movie> result =
+        await TMBDConnectionService.getMoviesPopularMovies(page);
+    setState(() {
+      popularMovies.addAll(result);
+      movieImageKey = UniqueKey();
+    });
+  }
+
+  Widget gridViewMovies(int crossAxisCount, List<Movie> popularMovies) {
     return GridView.builder(
+        controller: gridViewScrollControlller,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount, childAspectRatio: 1.0),
+            crossAxisCount: crossAxisCount, childAspectRatio: 0.61),
+        itemCount: popularMovies.length,
         itemBuilder: (context, index) {
-          return movieStack(index);
+          return movieStack(index, popularMovies[index]);
         });
   }
 
-  Widget movieStack(int index) {
+  Widget movieStack(int index, Movie movie) {
     return GestureDetector(
       onTap: () {
         Get.to(() => const MovieDetailsScreen());
       },
       child: Stack(
-        children: [
-          movieCard(index),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: moviePopularityRankingIndex(index),
-          )
-        ],
+        children: [movieCard(index, movie), moviePopularityRankingIndex(index)],
       ),
     );
   }
 
   Widget moviePopularityRankingIndex(int index) {
     return Container(
-      width: getPercentageOfScreenHeigth(3),
-      height: getPercentageOfScreenHeigth(3),
+      width: getPercentageOfScreenHeigth(popularityIndexSize),
+      height: getPercentageOfScreenHeigth(popularityIndexSize),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(50), color: Colors.amber),
       child: Center(
@@ -127,16 +197,24 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     );
   }
 
-  Widget movieCard(int index) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+  Widget movieCard(int index, Movie movie) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Card(
+        color: Colors.brown[200],
+        elevation: 2,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            movieImageRenderer(index),
-            movieCardTitleRow(index),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                  decoration: BoxDecoration(border: Border.all(width: 2)),
+                  child: movieImageRenderer(index, movie.posterPath)),
+            ),
+            const SizedBox(
+              height: 4,
+            ),
+            movieCardTitleRow(movie.title),
             // Column(
             //   children: [
             //     TextButton(onPressed: () {}, child: Text("View details")),
@@ -148,30 +226,32 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     );
   }
 
-  Widget movieImageRenderer(int index) {
+  Widget movieImageRenderer(int index, String posterPath) {
     return Row(
       children: [
         Flexible(
           child: SizedBox(
-            child: Image.asset(
-              "assets/images/moviePlaceholderImage.jpg",
-              fit: BoxFit.scaleDown,
-            ),
-          ),
+              child: posterPath != "" ? FadeInImage.assetNetwork(
+            key: movieImageKey,
+            placeholder: "assets/images/placeholderForMoviePoster.jpg",
+            image: 'http://image.tmdb.org/t/p/w500$posterPath',
+            fit: BoxFit.fitHeight,
+          ) : Image.asset("assets/images/placeholderForMoviePoster.jpg", fit: BoxFit.fitHeight,)),
         )
       ],
     );
   }
 
-  Widget movieCardTitleRow(int index) {
+  Widget movieCardTitleRow(String title) {
     return Row(
-      children: const [
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
         Flexible(
           child: Text(
-            "De Piraten van Hiernaast II: De Ninja's van de Overkant",
+            title,
             overflow: TextOverflow.fade,
-            textAlign: TextAlign.justify,
-            style: TextStyle(fontSize: 12),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ),
       ],
@@ -192,5 +272,65 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
 
   double getPercentageOfScreenWidth(double percentage) {
     return (getScreenWidth() * percentage) / 100;
+  }
+
+  Widget errorFetchingMovies() {
+    return Column(
+      children: [
+        SizedBox(
+          height: getPercentageOfScreenHeigth(40),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Text(
+              "Ups!!! something when wrong.",
+              style: TextStyle(fontSize: 20),
+            ),
+          ],
+        ),
+        SizedBox(
+          height: getPercentageOfScreenHeigth(2),
+        ),
+        const Text("We are working hard to fix it",
+            style: TextStyle(fontSize: 20)),
+        SizedBox(
+          height: getPercentageOfScreenHeigth(2),
+        ),
+        TextButton.icon(
+            onPressed: () {
+              setState(() {
+                futureMovies =
+                    TMBDConnectionService.getMoviesPopularMovies(page);
+              });
+            },
+            icon: const Icon(
+              Icons.refresh,
+              size: 50,
+            ),
+            label: const Text("")),
+        SizedBox(
+          height: getPercentageOfScreenHeigth(27),
+        ),
+        const Text("Please make sure that you are connected to the internet",
+            style: TextStyle(fontSize: 14)),
+      ],
+    );
+  }
+
+  Widget progressIndicator(double distanceFromTheTopPrecenetage) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+            height: getPercentageOfScreenHeigth(distanceFromTheTopPrecenetage)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            CircularProgressIndicator(color: Colors.black),
+          ],
+        ),
+      ],
+    );
   }
 }
