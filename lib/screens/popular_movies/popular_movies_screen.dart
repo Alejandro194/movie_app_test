@@ -4,6 +4,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:get/get.dart';
 import 'package:movie_app_test/controllers/error_controller.dart';
+import 'package:movie_app_test/controllers/genre_controller.dart';
 import 'package:movie_app_test/controllers/movie_controller.dart';
 import 'package:movie_app_test/models/movie.dart';
 import 'package:movie_app_test/screens/movie_details/movie_details_screen.dart';
@@ -19,7 +20,6 @@ class PopularMoviesScreen extends StatefulWidget {
 class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   late Future<List<Movie>> futureMovies;
   List<Movie> popularMovies = [];
-
   bool errorFetching = false;
   int crossAxisCount = 1;
   double popularityIndexSize = 7;
@@ -32,7 +32,8 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   @override
   void initState() {
     super.initState();
-    futureMovies = TMBDConnectionService.getMoviesPopularMovies(1);
+    Get.find<GenreController>().getAllMovieGenre();
+    futureMovies = TMBDConnectionService.getPopularMovies(1);
     gridViewScrollControlller.addListener(() {
       if (gridViewScrollControlller.position.maxScrollExtent ==
           gridViewScrollControlller.offset) {
@@ -42,7 +43,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   }
 
   void addMoreMoviesToList() async {
-    futureMovies = TMBDConnectionService.getMoviesPopularMovies(page);
+    futureMovies = TMBDConnectionService.getPopularMovies(page);
     setState(() {
       page++;
     });
@@ -137,7 +138,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
         SizedBox(
           height: getPercentageOfScreenHeigth(2),
         ),
-        const Text("We are working hard to fix it",
+        const Text("We are working hard to fix it.",
             style: TextStyle(fontSize: 20)),
         SizedBox(
           height: getPercentageOfScreenHeigth(2),
@@ -145,8 +146,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
         TextButton.icon(
             onPressed: () {
               setState(() {
-                futureMovies =
-                    TMBDConnectionService.getMoviesPopularMovies(page);
+                futureMovies = TMBDConnectionService.getPopularMovies(page);
               });
             },
             icon: const Icon(
@@ -157,7 +157,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
         SizedBox(
           height: getPercentageOfScreenHeigth(27),
         ),
-        const Text("Please make sure that you are connected to the internet",
+        const Text("Please make sure that you are connected to the internet.",
             style: TextStyle(fontSize: 14)),
       ],
     );
@@ -194,8 +194,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   }
 
   Future refresh() async {
-    List<Movie> result =
-        await TMBDConnectionService.getMoviesPopularMovies(page);
+    List<Movie> result = await TMBDConnectionService.getPopularMovies(page);
     setState(() {
       popularMovies.addAll(result);
       movieImageKey = UniqueKey();
@@ -208,7 +207,6 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
         crossAxisCount = 4;
         popularityIndexSize = 8;
         popularityIndexFontSize = 15;
-        
       }
       if (orientation == Orientation.portrait) {
         crossAxisCount = 2;
@@ -242,12 +240,17 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   Widget movieStack(int index, Movie movie) {
     return GestureDetector(
       onTap: () {
-        Get.to(() => const MovieDetailsScreen());
+        goToDetails(movie.id);
       },
       child: Stack(
         children: [movieCard(index, movie), moviePopularityRankingIndex(index)],
       ),
     );
+  }
+
+  void goToDetails(int movieId) {
+    Get.find<MovieController>().addMovies(popularMovies);
+    Get.to(() => const MovieDetailsScreen(), arguments: [movieId]);
   }
 
   Widget moviePopularityRankingIndex(int index) {
@@ -271,7 +274,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Card(
-        color: Colors.brown[200],
+        color: Colors.grey[200],
         elevation: 2,
         child: Column(
           children: [
@@ -307,6 +310,12 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
                       placeholder:
                           "assets/images/placeholderForMoviePoster.jpg",
                       image: 'http://image.tmdb.org/t/p/w500$posterPath',
+                      imageErrorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          "assets/images/placeholderForMoviePoster.jpg",
+                          fit: BoxFit.fitHeight,
+                        );
+                      },
                       fit: BoxFit.fitHeight,
                     )
                   : Image.asset(
@@ -323,11 +332,14 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Flexible(
-          child: Text(
-            title,
-            overflow: TextOverflow.fade,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 1),
+            child: Text(
+              title,
+              overflow: TextOverflow.fade,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
           ),
         ),
       ],

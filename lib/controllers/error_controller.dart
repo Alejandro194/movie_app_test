@@ -8,7 +8,7 @@ class ErrorController extends GetxController{
     update();
   }
 
-  void resetErrorOcurredWhileFetchingData(){
+  void everythingWentFineFetchingDate(){
     errorOcurredWhileFetchingData = false;
     update();
   }
