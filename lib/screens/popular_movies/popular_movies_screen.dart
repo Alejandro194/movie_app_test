@@ -22,8 +22,9 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
 
   bool errorFetching = false;
   int crossAxisCount = 1;
-  double popularityIndexSize = 4;
-  int popularityIndexFontSize = 14;
+  double popularityIndexSize = 7;
+  double popularityIndexFontSize = 14;
+  double bodySize = 730;
   UniqueKey movieImageKey = UniqueKey();
   int page = 2;
   ScrollController gridViewScrollControlller = ScrollController();
@@ -65,36 +66,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
                       popularMovies.add(snapshot.data![i]);
                     }
                   }
-                  return Column(
-                    children: [
-                      Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: sectionHeading()),
-                      SizedBox(
-                          height: 730,
-                          child: OrientationBuilder(
-                              builder: (context, orientation) {
-                            if (orientation == Orientation.landscape) {
-                              crossAxisCount = 4;
-                              popularityIndexSize = 8;
-                              popularityIndexFontSize = 20;
-                            }
-                            if (orientation == Orientation.portrait) {
-                              crossAxisCount = 2;
-                              popularityIndexSize = 3;
-                              popularityIndexFontSize = 12;
-                            }
-                            return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: RefreshIndicator(
-                                  color: Colors.black,
-                                  onRefresh: refresh,
-                                  child: gridViewMovies(
-                                      crossAxisCount, popularMovies),
-                                ));
-                          }))
-                    ],
-                  );
+                  return body();
                 } else {
                   return progressIndicator(40);
                 }
@@ -131,148 +103,20 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     );
   }
 
-  Widget sectionHeading() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: const [
-        Padding(
-          padding: EdgeInsets.all(4.0),
-          child: Text(
-            "Top popular movies",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-        ),
-        Icon(
-          Icons.filter_alt_sharp,
-          color: Colors.black,
-        )
-      ],
-    );
-  }
-
-  Future refresh() async {
-    List<Movie> result =
-        await TMBDConnectionService.getMoviesPopularMovies(page);
-    setState(() {
-      popularMovies.addAll(result);
-      movieImageKey = UniqueKey();
-    });
-  }
-
-  Widget gridViewMovies(int crossAxisCount, List<Movie> popularMovies) {
-    return GridView.builder(
-        controller: gridViewScrollControlller,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount, childAspectRatio: 0.61),
-        itemCount: popularMovies.length,
-        itemBuilder: (context, index) {
-          return movieStack(index, popularMovies[index]);
-        });
-  }
-
-  Widget movieStack(int index, Movie movie) {
-    return GestureDetector(
-      onTap: () {
-        Get.to(() => const MovieDetailsScreen());
-      },
-      child: Stack(
-        children: [movieCard(index, movie), moviePopularityRankingIndex(index)],
-      ),
-    );
-  }
-
-  Widget moviePopularityRankingIndex(int index) {
-    return Container(
-      width: getPercentageOfScreenHeigth(popularityIndexSize),
-      height: getPercentageOfScreenHeigth(popularityIndexSize),
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(50), color: Colors.amber),
-      child: Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-                  (index + 1).toString(),
-                  style: const TextStyle(fontSize: 12),
-                ),
-          )),
-    );
-  }
-
-  Widget movieCard(int index, Movie movie) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Card(
-        color: Colors.brown[200],
-        elevation: 2,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                  decoration: BoxDecoration(border: Border.all(width: 2)),
-                  child: movieImageRenderer(index, movie.posterPath)),
-            ),
-            const SizedBox(
-              height: 4,
-            ),
-            movieCardTitleRow(movie.title),
-            // Column(
-            //   children: [
-            //     TextButton(onPressed: () {}, child: Text("View details")),
-            //   ],
-            // )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget movieImageRenderer(int index, String posterPath) {
-    return Row(
-      children: [
-        Flexible(
-          child: SizedBox(
-              child: posterPath != "" ? FadeInImage.assetNetwork(
-            key: movieImageKey,
-            placeholder: "assets/images/placeholderForMoviePoster.jpg",
-            image: 'http://image.tmdb.org/t/p/w500$posterPath',
-            fit: BoxFit.fitHeight,
-          ) : Image.asset("assets/images/placeholderForMoviePoster.jpg", fit: BoxFit.fitHeight,)),
-        )
-      ],
-    );
-  }
-
-  Widget movieCardTitleRow(String title) {
-    return Row(
+  Widget progressIndicator(double distanceFromTheTopPrecenetage) {
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Flexible(
-          child: Text(
-            title,
-            overflow: TextOverflow.fade,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-          ),
+        SizedBox(
+            height: getPercentageOfScreenHeigth(distanceFromTheTopPrecenetage)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            CircularProgressIndicator(color: Colors.black),
+          ],
         ),
       ],
     );
-  }
-
-  double getScreenHeight() {
-    return Get.mediaQuery.size.height;
-  }
-
-  double getScreenWidth() {
-    return Get.mediaQuery.size.width;
-  }
-
-  double getPercentageOfScreenHeigth(double percentage) {
-    return (getScreenHeight() * percentage) / 100;
-  }
-
-  double getPercentageOfScreenWidth(double percentage) {
-    return (getScreenWidth() * percentage) / 100;
   }
 
   Widget errorFetchingMovies() {
@@ -319,19 +163,190 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     );
   }
 
-  Widget progressIndicator(double distanceFromTheTopPrecenetage) {
+  Widget body() {
     return Column(
+      children: [
+        Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: sectionHeading()),
+        SizedBox(height: bodySize, child: gridViewOrientationWrapper())
+      ],
+    );
+  }
+
+  Widget sectionHeading() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: const [
+        Padding(
+          padding: EdgeInsets.all(4.0),
+          child: Text(
+            "Top popular movies",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ),
+        Icon(
+          Icons.filter_alt_sharp,
+          color: Colors.black,
+        )
+      ],
+    );
+  }
+
+  Future refresh() async {
+    List<Movie> result =
+        await TMBDConnectionService.getMoviesPopularMovies(page);
+    setState(() {
+      popularMovies.addAll(result);
+      movieImageKey = UniqueKey();
+    });
+  }
+
+  Widget gridViewOrientationWrapper() {
+    return OrientationBuilder(builder: (context, orientation) {
+      if (orientation == Orientation.landscape) {
+        crossAxisCount = 4;
+        popularityIndexSize = 8;
+        popularityIndexFontSize = 15;
+        
+      }
+      if (orientation == Orientation.portrait) {
+        crossAxisCount = 2;
+        popularityIndexSize = 4;
+        popularityIndexFontSize = 12;
+      }
+      return Padding(
+          padding: const EdgeInsets.all(8.0), child: refreshIndicator());
+    });
+  }
+
+  Widget refreshIndicator() {
+    return RefreshIndicator(
+      color: Colors.black,
+      onRefresh: refresh,
+      child: gridViewMovies(crossAxisCount, popularMovies),
+    );
+  }
+
+  Widget gridViewMovies(int crossAxisCount, List<Movie> popularMovies) {
+    return GridView.builder(
+        controller: gridViewScrollControlller,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount, childAspectRatio: 0.61),
+        itemCount: popularMovies.length,
+        itemBuilder: (context, index) {
+          return movieStack(index, popularMovies[index]);
+        });
+  }
+
+  Widget movieStack(int index, Movie movie) {
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => const MovieDetailsScreen());
+      },
+      child: Stack(
+        children: [movieCard(index, movie), moviePopularityRankingIndex(index)],
+      ),
+    );
+  }
+
+  Widget moviePopularityRankingIndex(int index) {
+    return Container(
+      width: getPercentageOfScreenHeigth(popularityIndexSize),
+      height: getPercentageOfScreenHeigth(popularityIndexSize),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(50), color: Colors.amber),
+      child: Center(
+          child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          (index + 1).toString(),
+          style: TextStyle(fontSize: popularityIndexFontSize),
+        ),
+      )),
+    );
+  }
+
+  Widget movieCard(int index, Movie movie) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Card(
+        color: Colors.brown[200],
+        elevation: 2,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                  decoration: BoxDecoration(border: Border.all(width: 2)),
+                  child: movieImageRenderer(index, movie.posterPath)),
+            ),
+            const SizedBox(
+              height: 4,
+            ),
+            movieCardTitleRow(movie.title),
+            // Column(
+            //   children: [
+            //     TextButton(onPressed: () {}, child: Text("View details")),
+            //   ],
+            // )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget movieImageRenderer(int index, String posterPath) {
+    return Row(
+      children: [
+        Flexible(
+          child: SizedBox(
+              child: posterPath != ""
+                  ? FadeInImage.assetNetwork(
+                      key: movieImageKey,
+                      placeholder:
+                          "assets/images/placeholderForMoviePoster.jpg",
+                      image: 'http://image.tmdb.org/t/p/w500$posterPath',
+                      fit: BoxFit.fitHeight,
+                    )
+                  : Image.asset(
+                      "assets/images/placeholderForMoviePoster.jpg",
+                      fit: BoxFit.fitHeight,
+                    )),
+        )
+      ],
+    );
+  }
+
+  Widget movieCardTitleRow(String title) {
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(
-            height: getPercentageOfScreenHeigth(distanceFromTheTopPrecenetage)),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            CircularProgressIndicator(color: Colors.black),
-          ],
+        Flexible(
+          child: Text(
+            title,
+            overflow: TextOverflow.fade,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     );
+  }
+
+  double getScreenHeight() {
+    return Get.mediaQuery.size.height;
+  }
+
+  double getScreenWidth() {
+    return Get.mediaQuery.size.width;
+  }
+
+  double getPercentageOfScreenHeigth(double percentage) {
+    return (getScreenHeight() * percentage) / 100;
+  }
+
+  double getPercentageOfScreenWidth(double percentage) {
+    return (getScreenWidth() * percentage) / 100;
   }
 }
