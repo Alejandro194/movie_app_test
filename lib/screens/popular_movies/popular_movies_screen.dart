@@ -22,8 +22,8 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
 
   bool errorFetching = false;
   int crossAxisCount = 1;
-  double popularityIndexSize = 3;
-  int popularityIndexFontSize = 12;
+  double popularityIndexSize = 4;
+  int popularityIndexFontSize = 14;
   UniqueKey movieImageKey = UniqueKey();
   int page = 2;
   ScrollController gridViewScrollControlller = ScrollController();
@@ -65,8 +65,6 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
                       popularMovies.add(snapshot.data![i]);
                     }
                   }
-                  
-
                   return Column(
                     children: [
                       Padding(
@@ -190,10 +188,13 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(50), color: Colors.amber),
       child: Center(
-          child: Text(
-        (index + 1).toString(),
-        style: const TextStyle(fontSize: 12),
-      )),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+                  (index + 1).toString(),
+                  style: const TextStyle(fontSize: 12),
+                ),
+          )),
     );
   }
 
