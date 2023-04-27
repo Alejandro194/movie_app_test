@@ -202,7 +202,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
 
   Widget movieBackdropRenderer(String backdroPath) {
     return SizedBox(
-        height: 400,
+        height: MediaQuery.of(context).orientation == Orientation.landscape ? 300 : 400,
         width: double.infinity,
         child: backdroPath != ""
             ? FadeInImage.assetNetwork(
@@ -230,7 +230,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
           child: Container(
             decoration: BoxDecoration(border: Border.all(width: 2)),
             child: SizedBox(
-                height: 400,
+                height: MediaQuery.of(context).orientation == Orientation.landscape ? 300 : 410,
                 child: posterPath != ""
                     ? FadeInImage.assetNetwork(
                         placeholder:
@@ -520,7 +520,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
       height: 170,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6),
-        child: Column(
+        child:  Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -531,7 +531,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                 ),
               ],
             ),
-            SizedBox(
+            currentMovie.productionCompanies.isNotEmpty ? SizedBox(
               height: 100,
               child: ListView.builder(
                   scrollDirection: Axis.horizontal,
@@ -544,7 +544,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                         height: 200,
                         child: FadeInImage.assetNetwork(
                           placeholder:
-                              "assets/images/moviePlaceholderImage.jpg",
+                              "assets/images/whiteBackdropPlaceholder.jpg",
                           image:
                               'http://image.tmdb.org/t/p/original/${currentMovie.productionCompanies[index].logoPath}',
                           imageErrorBuilder: (context, error, stackTrace) {
@@ -559,7 +559,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                       ),
                     );
                   }),
-            ),
+            ) : const Text("Unkown"),
             const SizedBox(
               height: 14,
             ),

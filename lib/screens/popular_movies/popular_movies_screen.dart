@@ -202,10 +202,10 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
-        Icon(
-          Icons.filter_alt_sharp,
-          color: Colors.black,
-        )
+        // Icon(
+        //   Icons.filter_alt_sharp,
+        //   color: Colors.black,
+        // )
       ],
     );
   }
