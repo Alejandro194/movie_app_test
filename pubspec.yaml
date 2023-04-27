@@ -39,6 +39,15 @@ dependencies:
   http: ^0.13.5
   cached_network_image: ^3.2.3
   flutter_rating_bar: ^4.0.1
+  flutter_native_splash: ^2.2.19
+    
+
+flutter_native_splash:
+  android: true
+  ios: true
+  web: false
+  color: "#FFFFFF"
+  image: "assets/images/cinemaSearchLogoWhiteBackground.png"
 
 dev_dependencies:
   flutter_test:
@@ -50,6 +59,13 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_icons:
+  image_path : "assets/images/cinemaSearchLogoWhiteBackground.png"
+  android: true
+  ios: true
+  
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

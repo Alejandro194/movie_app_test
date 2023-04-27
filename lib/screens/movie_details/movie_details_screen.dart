@@ -39,15 +39,15 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: appBar(),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: GetBuilder<ErrorController>(
-            builder: (_) {
-              if (_.errorOcurredWhileFetchingData) {
-                return errorFetchingMovies();
-              } else {
-                return FutureBuilder(
+      body: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: GetBuilder<ErrorController>(
+          builder: (_) {
+            if (_.errorOcurredWhileFetchingData) {
+              return errorFetchingScreen();
+            } else {
+              return SingleChildScrollView(
+                child: FutureBuilder(
                     future: futureCurrentMovie,
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
@@ -56,10 +56,10 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                       } else {
                         return progressIndicator(40);
                       }
-                    });
-              }
-            },
-          ),
+                    }),
+              );
+            }
+          },
         ),
       ),
     );
@@ -94,56 +94,72 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
     );
   }
 
-  Widget errorFetchingMovies() {
+  Widget errorFetchingScreen() {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        SizedBox(
-          height: getPercentageOfScreenHeigth(40),
+        Container(
+          height: 2,
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text(
-              "Ups!!! something when wrong.",
-              style: TextStyle(fontSize: 20),
-            ),
-          ],
+        errorFetchingMovies(),
+        Container(
+          height: 2,
         ),
-        SizedBox(
-          height: getPercentageOfScreenHeigth(2),
-        ),
-        const Text("We are working hard to fix it.",
-            style: TextStyle(fontSize: 20)),
-        SizedBox(
-          height: getPercentageOfScreenHeigth(2),
-        ),
-        TextButton.icon(
-            onPressed: () {
-              setState(() {
-                futureCurrentMovie =
-                    TMBDConnectionService.getMovieDetails(movieId);
-              });
-            },
-            icon: const Icon(
-              Icons.refresh,
-              size: 50,
-            ),
-            label: const Text("")),
-        SizedBox(
-          height: getPercentageOfScreenHeigth(27),
-        ),
-        const Text("Please make sure that you are connected to the internet.",
-            style: TextStyle(fontSize: 14)),
       ],
     );
   }
+
+  Widget errorFetchingMovies() {
+    return SizedBox(
+      height: 200,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text(
+                "Ups!!! something when wrong.",
+                style: TextStyle(fontSize: 20),
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 4,
+          ),
+          const Text("We are working hard to fix it.",
+              style: TextStyle(fontSize: 20)),
+          const SizedBox(
+            height: 10,
+          ),
+          TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  futureCurrentMovie =
+                      TMBDConnectionService.getMovieDetails(movieId);
+                });
+              },
+              icon: const Icon(
+                Icons.refresh,
+                size: 50,
+              ),
+              label: const Text("")),
+          SizedBox(
+            height: 20,
+          ),
+          const Text("Please make sure that you are connected to the internet.",
+              style: TextStyle(fontSize: 14)),
+        ],
+      ),
+    );
+  }
+
 
   Widget progressIndicator(double distanceFromTheTopPrecenetage) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(
-            height: getPercentageOfScreenHeigth(distanceFromTheTopPrecenetage)),
+        const SizedBox(
+            height: 150),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
@@ -213,10 +229,8 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
         Flexible(
           child: Container(
             decoration: BoxDecoration(border: Border.all(width: 2)),
-            child: Container(
-                //width: getPercentageOfScreenWidth(100),
-                //decoration: BoxDecoration(border: Border.all()),
-                height: getPercentageOfScreenHeigth(45),
+            child: SizedBox(
+                height: 400,
                 child: posterPath != ""
                     ? FadeInImage.assetNetwork(
                         placeholder:
@@ -248,7 +262,8 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
         child: Column(
           children: [
             movieTitleRow(currentMovie.title),
-            movieInfoList(currentMovie),
+            movieInfoList(currentMovie, MediaQuery.of(context).orientation == Orientation.landscape ? 600 : 370),
+            
             const SizedBox(
               height: 10,
             ),
@@ -280,14 +295,14 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
     );
   }
 
-  Widget movieInfoList(Movie movie) {
+  Widget movieInfoList(Movie movie, double width) {
     final info = createMovieInfoList(movie);
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         SizedBox(
           height: 38,
-          width: 375,
+          width: width,
           child: Scrollbar(
             controller: scrollController,
             thickness: 5,
@@ -559,19 +574,5 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
     );
   }
 
-  double getScreenHeight() {
-    return Get.mediaQuery.size.height;
-  }
 
-  double getScreenWidth() {
-    return Get.mediaQuery.size.width;
-  }
-
-  double getPercentageOfScreenHeigth(double percentage) {
-    return (getScreenHeight() * percentage) / 100;
-  }
-
-  double getPercentageOfScreenWidth(double percentage) {
-    return (getScreenWidth() * percentage) / 100;
-  }
 }

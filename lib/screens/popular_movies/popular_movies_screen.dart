@@ -28,6 +28,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   UniqueKey movieImageKey = UniqueKey();
   int page = 2;
   ScrollController gridViewScrollControlller = ScrollController();
+  int errorScreenSpacing = 100;
 
   @override
   void initState() {
@@ -53,29 +54,31 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: appBar(),
-      body: SingleChildScrollView(child: GetBuilder<ErrorController>(
+      body: GetBuilder<ErrorController>(
         builder: (_) {
           if (_.errorOcurredWhileFetchingData) {
-            return errorFetchingMovies();
+            return errorFetchingScreen();
           } else {
-            return FutureBuilder<List<Movie>>(
-              future: futureMovies,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  for (var i = 0; i < snapshot.data!.length; i++) {
-                    if (popularMovies.contains(snapshot.data![i]) == false) {
-                      popularMovies.add(snapshot.data![i]);
+            return SingleChildScrollView(
+              child: FutureBuilder<List<Movie>>(
+                future: futureMovies,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    for (var i = 0; i < snapshot.data!.length; i++) {
+                      if (popularMovies.contains(snapshot.data![i]) == false) {
+                        popularMovies.add(snapshot.data![i]);
+                      }
                     }
+                    return body();
+                  } else {
+                    return progressIndicator(40);
                   }
-                  return body();
-                } else {
-                  return progressIndicator(40);
-                }
-              },
+                },
+              ),
             );
           }
         },
-      )),
+      ),
     );
   }
 
@@ -108,8 +111,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(
-            height: getPercentageOfScreenHeigth(distanceFromTheTopPrecenetage)),
+        const SizedBox(height: 100),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
@@ -120,46 +122,61 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     );
   }
 
-  Widget errorFetchingMovies() {
+  Widget errorFetchingScreen(){
     return Column(
-      children: [
-        SizedBox(
-          height: getPercentageOfScreenHeigth(40),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text(
-              "Ups!!! something when wrong.",
-              style: TextStyle(fontSize: 20),
-            ),
-          ],
-        ),
-        SizedBox(
-          height: getPercentageOfScreenHeigth(2),
-        ),
-        const Text("We are working hard to fix it.",
-            style: TextStyle(fontSize: 20)),
-        SizedBox(
-          height: getPercentageOfScreenHeigth(2),
-        ),
-        TextButton.icon(
-            onPressed: () {
-              setState(() {
-                futureMovies = TMBDConnectionService.getPopularMovies(page);
-              });
-            },
-            icon: const Icon(
-              Icons.refresh,
-              size: 50,
-            ),
-            label: const Text("")),
-        SizedBox(
-          height: getPercentageOfScreenHeigth(27),
-        ),
-        const Text("Please make sure that you are connected to the internet.",
-            style: TextStyle(fontSize: 14)),
-      ],
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  height: 2,
+                ),
+                errorFetchingMovies(),
+                Container(
+                  height: 2,
+                ),
+              ],
+            );
+  }
+
+  Widget errorFetchingMovies() {
+    return SizedBox(
+      height: 200,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text(
+                "Ups!!! something when wrong.",
+                style: TextStyle(fontSize: 20),
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 4,
+          ),
+          const Text("We are working hard to fix it.",
+              style: TextStyle(fontSize: 20)),
+          const SizedBox(
+            height: 10,
+          ),
+          TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  futureMovies = TMBDConnectionService.getPopularMovies(page);
+                });
+              },
+              icon: const Icon(
+                Icons.refresh,
+                size: 50,
+              ),
+              label: const Text("")),
+          SizedBox(
+            height: 20,
+          ),
+          const Text("Please make sure that you are connected to the internet.",
+              style: TextStyle(fontSize: 14)),
+        ],
+      ),
     );
   }
 
@@ -255,8 +272,8 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
 
   Widget moviePopularityRankingIndex(int index) {
     return Container(
-      width: getPercentageOfScreenHeigth(popularityIndexSize),
-      height: getPercentageOfScreenHeigth(popularityIndexSize),
+      width: 35,
+      height: 35,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(50), color: Colors.amber),
       child: Center(
@@ -344,21 +361,5 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
         ),
       ],
     );
-  }
-
-  double getScreenHeight() {
-    return Get.mediaQuery.size.height;
-  }
-
-  double getScreenWidth() {
-    return Get.mediaQuery.size.width;
-  }
-
-  double getPercentageOfScreenHeigth(double percentage) {
-    return (getScreenHeight() * percentage) / 100;
-  }
-
-  double getPercentageOfScreenWidth(double percentage) {
-    return (getScreenWidth() * percentage) / 100;
   }
 }
