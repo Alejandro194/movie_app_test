@@ -6,8 +6,10 @@ import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
 import 'package:movie_app_test/controllers/error_controller.dart';
+import 'package:movie_app_test/controllers/movie_controller.dart';
 import 'package:movie_app_test/models/genre.dart';
 import 'package:movie_app_test/models/movie.dart';
+import 'package:movie_app_test/screens/common/cinemaSearchAppBar.dart';
 import 'package:movie_app_test/services/tmbd_connection_sevice.dart';
 
 class MovieDetailsScreen extends StatefulWidget {
@@ -18,20 +20,12 @@ class MovieDetailsScreen extends StatefulWidget {
 }
 
 class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
-  late Future<Movie> futureCurrentMovie;
-  late Movie currentMovie;
-  int movieId = 0;
   ScrollController scrollController = ScrollController();
   double movieInfoWith = 300;
 
   @override
   void initState() {
-    if (Get.arguments != null) {
-      movieId = Get.arguments[0];
-      futureCurrentMovie =
-          TMBDConnectionService.getMovieDetails(Get.arguments[0]);
-    }
-    currentMovie = Movie.emptyMovie();
+    if (Get.arguments != null) {}
     super.initState();
   }
 
@@ -47,17 +41,25 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
               return errorFetchingScreen();
             } else {
               return SingleChildScrollView(
-                child: FutureBuilder(
-                    future: futureCurrentMovie,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        currentMovie = snapshot.data!;
-                        return body();
-                      } else {
-                        return progressIndicator(40);
-                      }
-                    }),
-              );
+                  child: GetBuilder<MovieController>(builder: (controller) {
+                if (controller.isLoading) {
+                  return progressIndicator();
+                } else {
+                  return body();
+                }
+              })
+
+                  // FutureBuilder(
+                  //     future: futureCurrentMovie,
+                  //     builder: (context, snapshot) {
+                  //       if (snapshot.hasData) {
+                  //         currentMovie = snapshot.data!;
+                  //         return body();
+                  //       } else {
+                  //         return progressIndicator(40);
+                  //       }
+                  //     }),
+                  );
             }
           },
         ),
@@ -67,12 +69,19 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
 
   AppBar appBar() {
     return AppBar(
+      leading: GestureDetector(
+          onTap: () {
+            Get.back();
+          },
+          child: const Icon(
+            Icons.arrow_back_outlined,
+            color: Colors.black,
+          )),
       backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
       elevation: 0,
       centerTitle: true,
       title: SizedBox(
-        width: 185,
+        width: 200,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -133,10 +142,10 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
           ),
           TextButton.icon(
               onPressed: () {
-                setState(() {
-                  futureCurrentMovie =
-                      TMBDConnectionService.getMovieDetails(movieId);
-                });
+                if (Get.find<MovieController>().isLoading == false) {
+                  Get.find<MovieController>().getMovieDetails(
+                      Get.find<MovieController>().currenteMovie.id);
+                }
               },
               icon: const Icon(
                 Icons.refresh,
@@ -153,13 +162,11 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
     );
   }
 
-
-  Widget progressIndicator(double distanceFromTheTopPrecenetage) {
+  Widget progressIndicator() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const SizedBox(
-            height: 150),
+        const SizedBox(height: 150),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
@@ -184,7 +191,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
   Widget movieImageDisplay() {
     return Stack(
       children: [
-        movieBackdropRenderer(currentMovie.posterPath),
+        movieBackdropRenderer(),
         Positioned.fill(
             child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 25),
@@ -194,62 +201,65 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
         )),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: movieImageRenderer(currentMovie.posterPath),
+          child: movieImageRenderer(),
         )
       ],
     );
   }
 
-  Widget movieBackdropRenderer(String backdroPath) {
+  Widget movieBackdropRenderer() {
     return SizedBox(
-        height: MediaQuery.of(context).orientation == Orientation.landscape ? 300 : 400,
+        height: MediaQuery.of(context).orientation == Orientation.landscape
+            ? 300
+            : 400,
         width: double.infinity,
-        child: backdroPath != ""
-            ? FadeInImage.assetNetwork(
-                placeholder: "assets/images/whiteBackdropPlaceholder.jpg",
-                image: 'http://image.tmdb.org/t/p/w500$backdroPath',
-                imageErrorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    "assets/images/placeholderForMoviePoster.jpg",
-                    fit: BoxFit.fitHeight,
-                  );
-                },
-                fit: BoxFit.fill,
-              )
-            : Image.asset(
-                "assets/images/whiteBackdropPlaceholder.jpg",
-                fit: BoxFit.fill,
-              ));
+        child: GetBuilder<MovieController>(
+          builder: (controller) {
+            return FadeInImage.assetNetwork(
+              placeholder: "assets/images/whiteBackdropPlaceholder.jpg",
+              image:
+                  'http://image.tmdb.org/t/p/w500${controller.currenteMovie.posterPath}',
+              imageErrorBuilder: (context, error, stackTrace) {
+                return Image.asset(
+                  "assets/images/placeholderForMoviePoster.jpg",
+                  fit: BoxFit.fitHeight,
+                );
+              },
+              fit: BoxFit.fill,
+            );
+          },
+        ));
   }
 
-  Widget movieImageRenderer(String posterPath) {
+  Widget movieImageRenderer() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Flexible(
-          child: Container(
-            decoration: BoxDecoration(border: Border.all(width: 2)),
-            child: SizedBox(
-                height: MediaQuery.of(context).orientation == Orientation.landscape ? 300 : 410,
-                child: posterPath != ""
-                    ? FadeInImage.assetNetwork(
-                        placeholder:
-                            "assets/images/placeholderForMoviePoster.jpg",
-                        image: 'http://image.tmdb.org/t/p/w500$posterPath',
-                        imageErrorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            "assets/images/placeholderForMoviePoster.jpg",
-                            fit: BoxFit.fitHeight,
-                          );
-                        },
-                        fit: BoxFit.scaleDown,
-                      )
-                    : Image.asset(
+            child: Container(
+          decoration: BoxDecoration(border: Border.all(width: 2)),
+          child: SizedBox(
+              height:
+                  MediaQuery.of(context).orientation == Orientation.landscape
+                      ? 300
+                      : 410,
+              child: GetBuilder<MovieController>(
+                builder: (controller) {
+                  return FadeInImage.assetNetwork(
+                    placeholder: "assets/images/placeholderForMoviePoster.jpg",
+                    image:
+                        'http://image.tmdb.org/t/p/w500${controller.currenteMovie.posterPath}',
+                    imageErrorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
                         "assets/images/placeholderForMoviePoster.jpg",
                         fit: BoxFit.fitHeight,
-                      )),
-          ),
-        )
+                      );
+                    },
+                    fit: BoxFit.scaleDown,
+                  );
+                },
+              )),
+        ))
       ],
     );
   }
@@ -261,42 +271,44 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            movieTitleRow(currentMovie.title),
-            movieInfoList(currentMovie, MediaQuery.of(context).orientation == Orientation.landscape ? 600 : 370),
-            
+            movieTitleRow(),
+            movieInfoList(
+                MediaQuery.of(context).orientation == Orientation.landscape
+                    ? 600
+                    : 370),
             const SizedBox(
               height: 10,
             ),
-            movieOverviewRow(currentMovie.overview),
+            movieOverviewRow(),
             const SizedBox(
               height: 15,
             ),
-            ratingStars(
-                currentMovie.voteAverage / 2, 5, currentMovie.voteCount),
+            ratingStars(),
           ],
         ),
       ),
     );
   }
 
-  Widget movieTitleRow(String title) {
+  Widget movieTitleRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Flexible(
-          child: Text(
-            title,
-            overflow: TextOverflow.fade,
-            textAlign: TextAlign.justify,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ),
+        Flexible(child: GetBuilder<MovieController>(
+          builder: (controller) {
+            return Text(
+              controller.currenteMovie.title,
+              overflow: TextOverflow.fade,
+              textAlign: TextAlign.justify,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            );
+          },
+        )),
       ],
     );
   }
 
-  Widget movieInfoList(Movie movie, double width) {
-    final info = createMovieInfoList(movie);
+  Widget movieInfoList(double width) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -307,29 +319,33 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
             controller: scrollController,
             thickness: 5,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: ListView.builder(
-                  controller: scrollController,
-                  scrollDirection: Axis.horizontal,
-                  itemCount: info.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 2, vertical: 2),
-                      child: Container(
-                          decoration:
-                              BoxDecoration(border: Border.all(width: 0.2)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: Text(
-                              info[index],
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w300),
-                            ),
-                          )),
-                    );
-                  }),
-            ),
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: GetBuilder<MovieController>(
+                  builder: (controller) {
+                    final info = createMovieInfoList(controller.currenteMovie);
+                    return ListView.builder(
+                        controller: scrollController,
+                        scrollDirection: Axis.horizontal,
+                        itemCount: info.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 2, vertical: 2),
+                            child: Container(
+                                decoration: BoxDecoration(
+                                    border: Border.all(width: 0.2)),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Text(
+                                    info[index],
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w300),
+                                  ),
+                                )),
+                          );
+                        });
+                  },
+                )),
           ),
         ),
       ],
@@ -364,23 +380,25 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
     return info;
   }
 
-  Widget movieOverviewRow(String overview) {
+  Widget movieOverviewRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Flexible(
-          child: Text(
-            overview,
-            overflow: TextOverflow.fade,
-            textAlign: TextAlign.justify,
-            style: const TextStyle(fontSize: 14),
-          ),
-        ),
+        Flexible(child: GetBuilder<MovieController>(
+          builder: (controller) {
+            return Text(
+              controller.currenteMovie.overview,
+              overflow: TextOverflow.fade,
+              textAlign: TextAlign.justify,
+              style: const TextStyle(fontSize: 14),
+            );
+          },
+        )),
       ],
     );
   }
 
-  Widget movieEconomicInfo(int budget, int revenue) {
+  Widget movieEconomicInfo() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
@@ -391,7 +409,11 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                 "Budget: ",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              FittedBox(child: Text(parseEconomicValues(budget))),
+              GetBuilder<MovieController>(builder: (controller) {
+                return FittedBox(
+                    child: Text(
+                        parseEconomicValues(controller.currenteMovie.budget)));
+              })
             ],
           ),
         ),
@@ -403,10 +425,11 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               Flexible(
-                  child: Text(
-                parseEconomicValues(revenue),
-                overflow: TextOverflow.fade,
-              )),
+                  child: GetBuilder<MovieController>(builder: (controller) {
+                return FittedBox(
+                    child: Text(
+                        parseEconomicValues(controller.currenteMovie.revenue)));
+              })),
             ],
           ),
         )
@@ -417,14 +440,14 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
   String parseEconomicValues(int value) {
     String valueToShow = "unknown";
     if (value > 0 && value >= 1000000) {
-      valueToShow = "${(value / 100000).toPrecision(1)} Mill USD";
+      valueToShow = "${(value / 1000000).toPrecision(1)} Mill USD";
     } else if (value > 0 && value < 1000000) {
       valueToShow = "$value USD";
     }
     return valueToShow;
   }
 
-  Widget ratingStars(double initialRating, int maxRating, int votes) {
+  Widget ratingStars() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -436,34 +459,38 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                 "Rating: ",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              Text(
-                "${initialRating.toStringAsPrecision(2)}/$maxRating",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              GetBuilder<MovieController>(builder: (controller) {
+                return Text(
+                  "${(controller.currenteMovie.voteAverage / 2).toStringAsPrecision(2)}/5",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                );
+              })
             ],
           ),
         ),
-        RatingBar.builder(
-          ignoreGestures: true,
-          itemSize: 20,
-          initialRating: initialRating,
-          minRating: 1,
-          direction: Axis.horizontal,
-          allowHalfRating: true,
-          itemCount: maxRating,
-          itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-          itemBuilder: (context, _) => const Icon(
-            Icons.star,
-            color: Colors.amber,
-          ),
-          onRatingUpdate: (rating) {
-            print(rating);
-          },
-        ),
+        GetBuilder<MovieController>(builder: (controller) {
+          return RatingBar.builder(
+            ignoreGestures: true,
+            itemSize: 20,
+            initialRating: controller.currenteMovie.voteAverage / 2,
+            minRating: 1,
+            direction: Axis.horizontal,
+            allowHalfRating: true,
+            itemCount: 5,
+            itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+            itemBuilder: (context, _) => const Icon(
+              Icons.star,
+              color: Colors.amber,
+            ),
+            onRatingUpdate: (rating) {},
+          );
+        }),
         const SizedBox(
           width: 10,
         ),
-        Text("($votes)")
+        GetBuilder<MovieController>(builder: (controller) {
+          return Text(controller.currenteMovie.voteCount.toString());
+        })
       ],
     );
   }
@@ -520,7 +547,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
       height: 170,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6),
-        child:  Column(
+        child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -531,48 +558,67 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                 ),
               ],
             ),
-            currentMovie.productionCompanies.isNotEmpty ? SizedBox(
-              height: 100,
-              child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: currentMovie.productionCompanies.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SizedBox(
-                        width: 200,
-                        height: 200,
-                        child: FadeInImage.assetNetwork(
-                          placeholder:
-                              "assets/images/whiteBackdropPlaceholder.jpg",
-                          image:
-                              'http://image.tmdb.org/t/p/original/${currentMovie.productionCompanies[index].logoPath}',
-                          imageErrorBuilder: (context, error, stackTrace) {
-                            return Center(
-                                child: Text(
-                              currentMovie.productionCompanies[index].name,
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ));
-                          },
-                          fit: BoxFit.scaleDown,
-                        ),
-                      ),
-                    );
-                  }),
-            ) : const Text("Unkown"),
+            GetBuilder<MovieController>(builder: (controller) {
+              if (controller.currenteMovie.productionCompanies.isEmpty) {
+                return const Text(
+                  "Unkown",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                );
+              } else {
+                return SizedBox(
+                    height: 100,
+                    child: GetBuilder<MovieController>(builder: (controller) {
+                      return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: controller
+                              .currenteMovie.productionCompanies.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SizedBox(
+                                  width: 200,
+                                  height: 200,
+                                  child: GetBuilder<MovieController>(
+                                      builder: (controller) {
+                                    return FadeInImage.assetNetwork(
+                                      placeholder:
+                                          "assets/images/whiteBackdropPlaceholder.jpg",
+                                      image:
+                                          'http://image.tmdb.org/t/p/original/${controller.currenteMovie.productionCompanies[index].logoPath}',
+                                      imageErrorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Center(
+                                            child: GetBuilder<MovieController>(
+                                          builder: (controller) {
+                                            return Text(
+                                              controller
+                                                  .currenteMovie
+                                                  .productionCompanies[index]
+                                                  .name,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            );
+                                          },
+                                        ));
+                                      },
+                                      fit: BoxFit.scaleDown,
+                                    );
+                                  })),
+                            );
+                          });
+                    }));
+              }
+            }),
             const SizedBox(
               height: 14,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
-              child:
-                  movieEconomicInfo(currentMovie.budget, currentMovie.revenue),
+              child: movieEconomicInfo(),
             ),
           ],
         ),
       ),
     );
   }
-
-
 }

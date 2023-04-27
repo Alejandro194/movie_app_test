@@ -7,6 +7,7 @@ import 'package:movie_app_test/controllers/error_controller.dart';
 import 'package:movie_app_test/controllers/genre_controller.dart';
 import 'package:movie_app_test/controllers/movie_controller.dart';
 import 'package:movie_app_test/models/movie.dart';
+import 'package:movie_app_test/screens/common/cinemaSearchAppBar.dart';
 import 'package:movie_app_test/screens/movie_details/movie_details_screen.dart';
 import 'package:movie_app_test/services/tmbd_connection_sevice.dart';
 
@@ -29,10 +30,12 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   int page = 2;
   ScrollController gridViewScrollControlller = ScrollController();
   int errorScreenSpacing = 100;
+  late final MovieController movieController;
 
   @override
   void initState() {
     super.initState();
+    movieController = Get.put(MovieController());
     Get.find<GenreController>().getAllMovieGenre();
     futureMovies = TMBDConnectionService.getPopularMovies(1);
     gridViewScrollControlller.addListener(() {
@@ -44,10 +47,12 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   }
 
   void addMoreMoviesToList() async {
-    futureMovies = TMBDConnectionService.getPopularMovies(page);
-    setState(() {
-      page++;
-    });
+    if (movieController.isLoading == false) {
+      movieController.fetcPoularMovies(page);
+      setState(() {
+        page++;
+      });
+    }
   }
 
   @override
@@ -59,23 +64,13 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
           if (_.errorOcurredWhileFetchingData) {
             return errorFetchingScreen();
           } else {
-            return SingleChildScrollView(
-              child: FutureBuilder<List<Movie>>(
-                future: futureMovies,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    for (var i = 0; i < snapshot.data!.length; i++) {
-                      if (popularMovies.contains(snapshot.data![i]) == false) {
-                        popularMovies.add(snapshot.data![i]);
-                      }
-                    }
-                    return body();
-                  } else {
-                    return progressIndicator(40);
-                  }
-                },
-              ),
-            );
+            return SingleChildScrollView(child: GetBuilder<MovieController>(
+              builder: (controller) {
+                return controller.popularMovies.isEmpty
+                    ? progressIndicator()
+                    : body();
+              },
+            ));
           }
         },
       ),
@@ -107,7 +102,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     );
   }
 
-  Widget progressIndicator(double distanceFromTheTopPrecenetage) {
+  Widget progressIndicator() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -122,19 +117,19 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     );
   }
 
-  Widget errorFetchingScreen(){
+  Widget errorFetchingScreen() {
     return Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  height: 2,
-                ),
-                errorFetchingMovies(),
-                Container(
-                  height: 2,
-                ),
-              ],
-            );
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          height: 2,
+        ),
+        errorFetchingMovies(),
+        Container(
+          height: 2,
+        ),
+      ],
+    );
   }
 
   Widget errorFetchingMovies() {
@@ -161,9 +156,13 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
           ),
           TextButton.icon(
               onPressed: () {
-                setState(() {
-                  futureMovies = TMBDConnectionService.getPopularMovies(page);
-                });
+                if (movieController.isLoading == false) {
+                  if (movieController.popularMovies.isEmpty) {
+                    movieController.fetcPoularMovies(1);
+                  } else {
+                    movieController.fetcPoularMovies(2);
+                  }
+                }
               },
               icon: const Icon(
                 Icons.refresh,
@@ -213,8 +212,10 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   Future refresh() async {
     List<Movie> result = await TMBDConnectionService.getPopularMovies(page);
     setState(() {
-      popularMovies.addAll(result);
-      movieImageKey = UniqueKey();
+      if (movieController.isLoading == false) {
+        popularMovies.addAll(result);
+        movieImageKey = UniqueKey();
+      }
     });
   }
 
@@ -244,20 +245,20 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   }
 
   Widget gridViewMovies(int crossAxisCount, List<Movie> popularMovies) {
-    return GridView.builder(
+    return Obx(() => GridView.builder(
         controller: gridViewScrollControlller,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount, childAspectRatio: 0.61),
-        itemCount: popularMovies.length,
+        itemCount: movieController.popularMovies.length,
         itemBuilder: (context, index) {
-          return movieStack(index, popularMovies[index]);
-        });
+          return movieStack(index, movieController.popularMovies[index]);
+        }));
   }
 
   Widget movieStack(int index, Movie movie) {
     return GestureDetector(
       onTap: () {
-        goToDetails(movie.id);
+        goToDetails(movie);
       },
       child: Stack(
         children: [movieCard(index, movie), moviePopularityRankingIndex(index)],
@@ -265,9 +266,10 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
     );
   }
 
-  void goToDetails(int movieId) {
-    Get.find<MovieController>().addMovies(popularMovies);
-    Get.to(() => const MovieDetailsScreen(), arguments: [movieId]);
+  void goToDetails(Movie movie) {
+    movieController.updateCurrentMovie(movie);
+    movieController.getMovieDetails(movie.id);
+    Get.to(() => const MovieDetailsScreen());
   }
 
   Widget moviePopularityRankingIndex(int index) {
