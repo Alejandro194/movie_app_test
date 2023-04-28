@@ -33,4 +33,4 @@ This project is licensed under the MIT License.
 
 ## Acknowledgments
 
-This app was created as part of a tecnical test for a job position in codeberry solutions. I thank then for the chanllenge and the opportunity.
+This app was created as part of a tecnical test for a job position in Codeberry Solutions. I thank then for the chanllenge and the opportunity.
