@@ -9,7 +9,6 @@ import 'package:movie_app_test/controllers/error_controller.dart';
 import 'package:movie_app_test/controllers/movie_controller.dart';
 import 'package:movie_app_test/models/genre.dart';
 import 'package:movie_app_test/models/movie.dart';
-import 'package:movie_app_test/screens/common/cinemaSearchAppBar.dart';
 import 'package:movie_app_test/services/tmbd_connection_sevice.dart';
 
 class MovieDetailsScreen extends StatefulWidget {

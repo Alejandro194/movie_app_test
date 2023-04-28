@@ -7,7 +7,6 @@ import 'package:movie_app_test/controllers/error_controller.dart';
 import 'package:movie_app_test/controllers/genre_controller.dart';
 import 'package:movie_app_test/controllers/movie_controller.dart';
 import 'package:movie_app_test/models/movie.dart';
-import 'package:movie_app_test/screens/common/cinemaSearchAppBar.dart';
 import 'package:movie_app_test/screens/movie_details/movie_details_screen.dart';
 import 'package:movie_app_test/services/tmbd_connection_sevice.dart';
 
@@ -36,8 +35,8 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
   void initState() {
     super.initState();
     movieController = Get.put(MovieController());
-    Get.find<GenreController>().getAllMovieGenre();
-    futureMovies = TMBDConnectionService.getPopularMovies(1);
+    //Get.find<GenreController>().getAllMovieGenre();
+    //futureMovies = TMBDConnectionService.getPopularMovies(1);
     gridViewScrollControlller.addListener(() {
       if (gridViewScrollControlller.position.maxScrollExtent ==
           gridViewScrollControlller.offset) {

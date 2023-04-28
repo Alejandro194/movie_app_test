@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:movie_app_test/controllers/error_controller.dart';
@@ -6,11 +7,10 @@ import 'package:movie_app_test/models/genre.dart';
 import 'package:movie_app_test/models/movie.dart';
 
 class TMBDConnectionService {
-  static const String apiKey = '11a3b06330dbaa951074d127189ec094';
   static const String baseUrl = "api.themoviedb.org";
 
   static Future<List<Movie>> getPopularMovies(int page) async {
-    final queryParams = {'api_key': apiKey, 'page': page.toString()};
+    final queryParams = {'api_key': dotenv.get("api_key"), 'page': page.toString()};
     try {
       var url = Uri.https(baseUrl, "/3/movie/popular", queryParams);
       var response = await http.get(url);
@@ -32,7 +32,7 @@ class TMBDConnectionService {
   }
 
   static Future<List<Genre>> getMovieGenreList() async {
-    final queryParams = {'api_key': apiKey};
+    final queryParams = {'api_key': dotenv.get("api_key")};
     try {
       var url = Uri.https(baseUrl, "/3/genre/movie/list", queryParams);
       var response = await http.get(url);
@@ -54,7 +54,7 @@ class TMBDConnectionService {
   }
 
   static Future<Movie> getMovieDetails(int movieId) async {
-    final queryParams = {'api_key': apiKey};
+    final queryParams = {'api_key': dotenv.get("api_key")};
     try {
       var url = Uri.https(baseUrl, "/3/movie/$movieId", queryParams);
       var response = await http.get(url);

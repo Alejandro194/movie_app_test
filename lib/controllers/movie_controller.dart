@@ -2,10 +2,11 @@ import 'package:get/get.dart';
 import 'package:movie_app_test/models/movie.dart';
 import 'package:movie_app_test/services/tmbd_connection_sevice.dart';
 
-class MovieController extends GetxController {
+class MovieController extends GetxController { 
   var popularMovies = <Movie>[].obs;
   bool isLoading = true;
   Movie currenteMovie = Movie.emptyMovie();
+
 
   @override
   void onInit() {
@@ -13,16 +14,20 @@ class MovieController extends GetxController {
     super.onInit();
   }
 
-  void fetcPoularMovies(int page) async {
+  Future<List<Movie>> fetcPoularMovies(int page) async {
     updateIsLoading(true);
     var result = await TMBDConnectionService.getPopularMovies(page);
     updateIsLoading(false);
-    if (result != null) {
+    if (result.isNotEmpty) {
       addNewPopularMovies(result);
+      return result;
+    }else{
+      return [];
     }
+    
   }
 
-  void getMovieDetails(int movieId) async {
+  Future<Movie> getMovieDetails(int movieId) async {
     updateIsLoading(true);
     var result = await TMBDConnectionService.getMovieDetails(movieId);
     updateIsLoading(false);
@@ -30,6 +35,7 @@ class MovieController extends GetxController {
       currenteMovie = result;
       update();
     }
+    return result;
   }
 
   void addNewPopularMovies(List<Movie> newMovies) {

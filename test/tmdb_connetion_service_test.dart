@@ -10,7 +10,6 @@ void main() {
   setUp(() => Get.put(ErrorController()));
 
   test("Conection service correct intial values", () {
-    expect(TMBDConnectionService.apiKey, '11a3b06330dbaa951074d127189ec094');
     expect(TMBDConnectionService.baseUrl, "api.themoviedb.org");
   });
 

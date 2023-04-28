@@ -41,6 +41,7 @@ dependencies:
   flutter_rating_bar: ^4.0.1
   flutter_native_splash: ^2.2.19
   mocktail: ^0.3.0
+  flutter_dotenv: ^5.0.2
     
 
 flutter_native_splash:
@@ -113,3 +114,4 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
   assets:
     - assets/images/
+    - .env
