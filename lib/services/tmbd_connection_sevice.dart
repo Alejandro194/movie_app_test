@@ -25,7 +25,7 @@ class TMBDConnectionService {
       } else {
         return [];
       }
-    } on Exception catch (e) {
+    } on Exception {
       Get.find<ErrorController>().errorDetected();
       return [];
     }
@@ -42,12 +42,11 @@ class TMBDConnectionService {
         final parseGenreList =
             genres.map<Genre>((json) => Genre.fromJson(json)).toList();
         Get.find<ErrorController>().everythingWentFineFetchingDate();
-        print(parseGenreList.map((e) => e.name));
         return parseGenreList;
       } else {
         return [];
       }
-    } on Exception catch (e) {
+    } on Exception {
       Get.find<ErrorController>().errorDetected();
       return [];
     }
@@ -66,7 +65,7 @@ class TMBDConnectionService {
       } else {
         return Movie.emptyMovie();
       }
-    } on Exception catch (e) {
+    } on Exception {
       Get.find<ErrorController>().errorDetected();
       return Movie.emptyMovie();
     }

@@ -1,10 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:get/get.dart';
 import 'package:movie_app_test/controllers/error_controller.dart';
-import 'package:movie_app_test/controllers/genre_controller.dart';
 import 'package:movie_app_test/controllers/movie_controller.dart';
 import 'package:movie_app_test/models/movie.dart';
 import 'package:movie_app_test/screens/movie_details/movie_details_screen.dart';
@@ -93,7 +89,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
             ),
           ),
           const Text(
-            "CinemaSerch",
+            "CinemaSearch",
             style: TextStyle(color: Colors.black),
           ),
         ],
@@ -168,7 +164,7 @@ class _PopularMoviesScreenState extends State<PopularMoviesScreen> {
                 size: 50,
               ),
               label: const Text("")),
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
           const Text("Please make sure that you are connected to the internet.",

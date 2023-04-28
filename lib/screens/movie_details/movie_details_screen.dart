@@ -1,15 +1,11 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
 import 'package:movie_app_test/controllers/error_controller.dart';
 import 'package:movie_app_test/controllers/movie_controller.dart';
-import 'package:movie_app_test/models/genre.dart';
 import 'package:movie_app_test/models/movie.dart';
-import 'package:movie_app_test/services/tmbd_connection_sevice.dart';
 
 class MovieDetailsScreen extends StatefulWidget {
   const MovieDetailsScreen({super.key});
@@ -46,19 +42,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                 } else {
                   return body();
                 }
-              })
-
-                  // FutureBuilder(
-                  //     future: futureCurrentMovie,
-                  //     builder: (context, snapshot) {
-                  //       if (snapshot.hasData) {
-                  //         currentMovie = snapshot.data!;
-                  //         return body();
-                  //       } else {
-                  //         return progressIndicator(40);
-                  //       }
-                  //     }),
-                  );
+              }));
             }
           },
         ),
@@ -93,7 +77,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
               ),
             ),
             const Text(
-              "CinemaSerch",
+              "CinemaSearch",
               style: TextStyle(color: Colors.black),
             ),
           ],
@@ -151,7 +135,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                 size: 50,
               ),
               label: const Text("")),
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
           const Text("Please make sure that you are connected to the internet.",
@@ -359,7 +343,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
     }
     if (movie.productionCountries.isNotEmpty) {
       final countries = movie.productionCountries
-          .reduce((value, element) => value + ", " + element);
+          .reduce((value, element) => "$value, $element");
       info.add(countries);
     }
     final year = movie.releaseDate.year.toString();
@@ -372,7 +356,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
     }
     if (movie.genres.isNotEmpty) {
       final genres =
-          movie.genres.reduce((value, element) => value + ", " + element);
+          movie.genres.reduce((value, element) => "$value, $element");
       info.add(genres);
     }
 
