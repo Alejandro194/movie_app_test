@@ -30,7 +30,3 @@ If you'd like to contribute to this app, feel free to submit a pull request or o
 ## License
 
 This project is licensed under the MIT License.
-
-## Acknowledgments
-
-This app was created as part of a tecnical test for a job position in Codeberry Solutions. I thank then for the chanllenge and the opportunity.
